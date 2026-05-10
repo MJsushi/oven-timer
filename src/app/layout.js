@@ -1,4 +1,9 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import {
+  Geist,
+  Geist_Mono,
+  DotGothic16,
+} from "next/font/google";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,8 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata = {
+const dotFont = DotGothic16({
+  weight: "400",
+  subsets: ["latin"],
+  variable: "--font-dot",
+});
 
+export const metadata = {
   title: "Oven Timer",
 
   description: "Production Timer",
@@ -20,30 +30,36 @@ export const metadata = {
   manifest: "/manifest.json",
 
   appleWebApp: {
-
     capable: true,
 
-    statusBarStyle: "black-translucent",
+    statusBarStyle:
+      "black-translucent",
 
     title: "Oven Timer",
-
   },
 
   icons: {
-
     apple: "/icon-192.png",
-
   },
-
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({
+  children,
+}) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`
+        ${geistSans.variable}
+        ${geistMono.variable}
+        ${dotFont.variable}
+        h-full
+        antialiased
+      `}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        {children}
+      </body>
     </html>
   );
 }

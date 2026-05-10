@@ -366,28 +366,17 @@ export default function Page() {
                 <div className="text-center py-2 md:py-5">
                   <div className="text-4xl md:text-6xl font-black tracking-wider font-mono">
                     <div className="flex items-center justify-center gap-1 md:gap-2">
-
-  {splitTime(m.seconds).map((char, i) =>
-
-    char === ":" ? (
-
-      <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
-
-        :
-
-      </div>
-
-    ) : (
-
-      <FlipDigit key={i} value={char} />
-
-    )
-
-  )}
-
-</div>
+                    {splitTime(m.seconds).map((char, i) =>
+                      char === ":" ? (
+                        <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
+                          :
+                        </div>
+                      ) : (
+                        <FlipDigit key={i} value={char} />
+                      )
+                    )}
                   </div>
-
+                  </div>
                   <div className="mt-2 text-zinc-400 text-sm">
                     Target {m.targetMinute} นาที
                   </div>
