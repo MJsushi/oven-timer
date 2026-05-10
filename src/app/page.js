@@ -30,22 +30,23 @@ export default function Page() {
     }))
   );
 
-  const wakeLockRef = useRef(null);
   const audioRef = useRef(null);
 
-  // 🔆 wake lock
-  const enableWakeLock = async () => {
+  // 🔊 init audio
+  useEffect(() => {
     try {
-      if ("wakeLock" in navigator) {
-        wakeLockRef.current =
-          await navigator.wakeLock.request(
-            "screen"
-          );
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if (AudioContextClass) {
+        audioRef.current =
+          new AudioContextClass();
       }
     } catch (err) {
       console.log(err);
     }
-  };
+  }, []);
 
   // ⏱ timer
   useEffect(() => {
@@ -91,19 +92,10 @@ export default function Page() {
   // 🔊 alarm
   const playAlarm = () => {
     try {
-      const AudioContextClass =
-        window.AudioContext ||
-        window.webkitAudioContext;
-
-      if (!AudioContextClass) return;
-
-      if (!audioRef.current) {
-        audioRef.current =
-          new AudioContextClass();
-      }
-
       const audioContext =
         audioRef.current;
+
+      if (!audioContext) return;
 
       const playNote = (
         frequency,
@@ -136,7 +128,7 @@ export default function Page() {
         );
 
         gainNode.gain.exponentialRampToValueAtTime(
-          0.18,
+          0.15,
           start + 0.01
         );
 
@@ -152,9 +144,9 @@ export default function Page() {
         );
       };
 
-      playNote(1200, 0.15, 0);
-      playNote(1600, 0.15, 0.2);
-      playNote(2200, 0.35, 0.4);
+      playNote(1200, 0.12, 0);
+      playNote(1600, 0.12, 0.15);
+      playNote(2200, 0.3, 0.3);
     } catch (err) {
       console.log(err);
     }
@@ -163,7 +155,8 @@ export default function Page() {
   // 🗣 speak
   const speakThai = (text) => {
     try {
-      if (!window.speechSynthesis) return;
+      if (!window.speechSynthesis)
+        return;
 
       speechSynthesis.cancel();
 
@@ -190,8 +183,6 @@ export default function Page() {
         await audioRef.current.resume();
       }
     } catch (e) {}
-
-    await enableWakeLock();
 
     setMachines((prev) =>
       prev.map((m) =>
@@ -222,7 +213,7 @@ export default function Page() {
     );
   };
 
-  // ⌨️ update minute
+  // ⌨️ minute
   const updateMinute = (
     id,
     value
@@ -240,7 +231,7 @@ export default function Page() {
     );
   };
 
-  // 🕒 split time
+  // 🕒 split
   const splitTime = (sec) => {
     const h = String(
       Math.floor(sec / 3600)
@@ -259,32 +250,32 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white p-2 md:p-4">
+    <main className="page">
       {/* header */}
-      <div className="mb-3 flex items-center justify-between">
+      <div className="header">
         <div>
-          <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-[0.25em]">
+          <div className="header-sub">
             Production Timer
           </div>
 
-          <h1 className="text-xl md:text-3xl font-black">
+          <h1 className="header-title">
             Oven Dashboard
           </h1>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2">
-          <div className="text-[10px] text-zinc-500">
+        <div className="machine-box">
+          <div className="machine-label">
             Machines
           </div>
 
-          <div className="text-lg font-black">
+          <div className="machine-count">
             {machines.length}
           </div>
         </div>
       </div>
 
       {/* cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+      <div className="grid">
         {machines.map((m) => {
           const targetSec =
             Number(m.targetMinute) * 60;
@@ -303,46 +294,34 @@ export default function Page() {
           return (
             <div
               key={m.id}
-              className={`
-                rounded-3xl
-                border
-                p-3 md:p-4
-                flex
-                flex-col
-                gap-3
-                shadow-2xl
-                ${
-                  m.finished
-                    ? "bg-red-950 border-red-600"
-                    : warning
-                    ? "bg-yellow-950 border-yellow-500"
-                    : "bg-zinc-950 border-zinc-800"
-                }
-              `}
+              className={`card ${
+                m.finished
+                  ? "card-finished"
+                  : warning
+                  ? "card-warning"
+                  : "card-normal"
+              }`}
             >
               {/* top */}
-              <div className="flex items-center justify-between">
+              <div className="top-row">
                 <div>
-                  <div className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">
+                  <div className="machine-text">
                     Machine
                   </div>
 
-                  <div className="text-lg md:text-2xl font-black">
+                  <div className="machine-name">
                     {m.name}
                   </div>
                 </div>
 
                 <div
-                  className={`
-                    px-3 py-1 rounded-full text-xs font-black
-                    ${
-                      m.finished
-                        ? "bg-red-500 text-white"
-                        : m.running
-                        ? "bg-green-500 text-black"
-                        : "bg-zinc-700 text-zinc-200"
-                    }
-                  `}
+                  className={`status ${
+                    m.finished
+                      ? "status-red"
+                      : m.running
+                      ? "status-green"
+                      : "status-gray"
+                  }`}
                 >
                   {m.finished
                     ? "FINISHED"
@@ -352,102 +331,57 @@ export default function Page() {
                 </div>
               </div>
 
-              {/* TIMER */}
-              <div className="bg-black rounded-3xl border border-zinc-800 px-2 py-4 md:py-5">
-                <div className="flex items-center justify-center gap-1">
-                  {splitTime(m.seconds).map(
-                    (char, i) =>
-                      char === ":" ? (
-                        <div
-                          key={i}
-                          className="
-                            text-[42px]
-                            md:text-[72px]
-                            font-black
-                            leading-none
-                            text-red-500
-                            mb-1
-                          "
-                        >
-                          :
+              {/* timer */}
+              <div className="timer-box">
+                <div className="timer-row">
+                  {splitTime(
+                    m.seconds
+                  ).map((char, i) =>
+                    char === ":" ? (
+                      <div
+                        key={i}
+                        className="colon"
+                      >
+                        :
+                      </div>
+                    ) : (
+                      <div
+                        key={i}
+                        className="digit-box"
+                      >
+                        <div className="digit">
+                          {char}
                         </div>
-                      ) : (
-                        <div
-                          key={i}
-                          className="
-                            w-[44px]
-                            h-[62px]
-                            md:w-[72px]
-                            md:h-[100px]
-                            rounded-xl
-                            border
-                            border-zinc-800
-                            bg-[#050505]
-                            flex
-                            items-center
-                            justify-center
-                            overflow-hidden
-                          "
-                        >
-                          <div
-                            className="
-                              text-[40px]
-                              md:text-[72px]
-                              font-black
-                              leading-none
-                              text-red-500
-                              tracking-tight
-                              select-none
-                            "
-                            style={{
-                              fontFamily:
-                                "'Courier New', monospace",
-                              textShadow:
-                                "0 0 8px rgba(255,0,0,0.9)",
-                              transform:
-                                "translateY(-2px)",
-                            }}
-                          >
-                            {char}
-                          </div>
-                        </div>
-                      )
+                      </div>
+                    )
                   )}
                 </div>
 
-                <div className="text-center mt-3 text-zinc-500 text-sm md:text-base">
+                <div className="target">
                   Target{" "}
-                  <span className="text-white font-bold">
-                    {m.targetMinute}
-                  </span>{" "}
-                  นาที
+                  {m.targetMinute} นาที
                 </div>
               </div>
 
               {/* progress */}
               <div>
-                <div className="flex items-center justify-between mb-2">
-                  <div className="text-sm text-zinc-400">
-                    Progress
-                  </div>
+                <div className="progress-top">
+                  <span>Progress</span>
 
-                  <div className="text-2xl md:text-3xl font-black text-white">
+                  <span className="progress-text">
                     {Math.floor(progress)}%
-                  </div>
+                  </span>
                 </div>
 
-                <div className="h-4 bg-black rounded-full overflow-hidden border border-zinc-800">
+                <div className="progress-bar">
                   <div
-                    className={`
-                      h-full transition-all duration-500
-                      ${
-                        m.finished
-                          ? "bg-red-500"
-                          : warning
-                          ? "bg-yellow-400"
-                          : "bg-green-500"
-                      }
-                    `}
+                    className={`progress-fill ${
+                      m.finished
+                        ? "fill-red"
+                        : warning
+                        ? "fill-yellow"
+                        : "fill-green"
+                    }`}
                     style={{
                       width: `${progress}%`,
                     }}
@@ -457,7 +391,7 @@ export default function Page() {
 
               {/* input */}
               <div>
-                <div className="text-sm text-zinc-400 mb-2">
+                <div className="input-label">
                   ตั้งเวลา (นาที)
                 </div>
 
@@ -470,42 +404,22 @@ export default function Page() {
                       e.target.value
                     )
                   }
-                  className="
-                    w-full
-                    rounded-2xl
-                    bg-black
-                    border
-                    border-zinc-700
-                    px-4
-                    py-3
-                    text-lg
-                    outline-none
-                    text-white
-                  "
+                  className="input"
                 />
               </div>
 
               {/* buttons */}
-              <div className="flex gap-2">
+              <div className="button-row">
                 <button
                   type="button"
                   onClick={() =>
                     toggle(m.id)
                   }
-                  className={`
-                    flex-1
-                    py-3
-                    rounded-2xl
-                    font-black
-                    text-base
-                    active:scale-95
-                    transition-all
-                    ${
-                      m.running
-                        ? "bg-orange-500 text-black"
-                        : "bg-green-500 text-black"
-                    }
-                  `}
+                  className={`button ${
+                    m.running
+                      ? "button-orange"
+                      : "button-green"
+                  }`}
                 >
                   {m.running
                     ? "Pause"
@@ -517,15 +431,7 @@ export default function Page() {
                   onClick={() =>
                     reset(m.id)
                   }
-                  className="
-                    flex-1
-                    py-3
-                    rounded-2xl
-                    font-black
-                    text-base
-                    bg-zinc-700
-                    active:scale-95
-                  "
+                  className="button button-gray"
                 >
                   Reset
                 </button>

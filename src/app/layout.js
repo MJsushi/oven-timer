@@ -4,6 +4,12 @@ import "./globals.css";
 const orbitron = Orbitron({
   subsets: ["latin"],
   weight: ["400", "500", "700", "900"],
+  display: "swap", // ✅ safari เก่ากว่า support ดีกว่า
+  fallback: [
+    "Arial",
+    "Helvetica",
+    "sans-serif",
+  ],
   variable: "--font-orbitron",
 });
 
@@ -21,6 +27,9 @@ export const metadata = {
   icons: {
     apple: "/icon-192.png",
   },
+
+  viewport:
+    "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
 };
 
 export default function RootLayout({
@@ -28,10 +37,24 @@ export default function RootLayout({
 }) {
   return (
     <html
-      lang="en"
+      lang="th"
       className={orbitron.variable}
     >
-      <body>{children}</body>
+      <body
+        style={{
+          margin: 0,
+          background: "#050505",
+          color: "white",
+          fontFamily:
+            "var(--font-orbitron), Arial, sans-serif",
+          WebkitTouchCallout: "none",
+          WebkitUserSelect: "none",
+          userSelect: "none",
+          touchAction: "manipulation",
+        }}
+      >
+        {children}
+      </body>
     </html>
   );
 }
