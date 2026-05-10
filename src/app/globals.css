@@ -107,3 +107,31 @@ input[type="number"] {
   animation: dangerPulse 1s infinite;
 }
 
+.led-red {
+  color: #ff3b30;
+
+  text-shadow:
+    0 0 4px rgba(255, 0, 0, 0.9),
+    0 0 8px rgba(255, 0, 0, 0.8),
+    0 0 16px rgba(255, 0, 0, 0.6),
+    0 0 32px rgba(255, 0, 0, 0.5);
+}
+
+@keyframes ledPulse {
+  0% {
+    opacity: 0.92;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.92;
+  }
+}
+
+.led-glow {
+  animation: ledPulse 1.5s infinite;
+}
+
