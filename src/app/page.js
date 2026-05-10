@@ -1,22 +1,23 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FlipDigit from "./components/FlipDigit";
 
 const defaultMachines = [
   {
     id: 1,
     name: "เครื่อง A",
-    targetMinute: 1,
+    targetMinute: 3,
   },
   {
     id: 2,
     name: "เครื่อง B",
-    targetMinute: 5,
+    targetMinute: 3,
   },
   {
     id: 3,
     name: "เครื่อง C",
-    targetMinute: 10,
+    targetMinute: 3,
   },
 ];
 
@@ -254,6 +255,14 @@ export default function Page() {
     return `${h}:${m}:${s}`;
   };
 
+  const splitTime = (sec) => {
+    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
+    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
+    const s = String(sec % 60).padStart(2, "0");
+
+    return [...h, ":", ...m, ":", ...s];
+  };
+
   return (
     <main className="min-h-screen bg-[#0a0a0a] text-white px-3 py-4 md:p-6">
       {/* header */}
@@ -356,7 +365,27 @@ export default function Page() {
                 {/* time */}
                 <div className="text-center py-2 md:py-5">
                   <div className="text-4xl md:text-6xl font-black tracking-wider font-mono">
-                    {formatTime(m.seconds)}
+                    <div className="flex items-center justify-center gap-1 md:gap-2">
+
+  {splitTime(m.seconds).map((char, i) =>
+
+    char === ":" ? (
+
+      <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
+
+        :
+
+      </div>
+
+    ) : (
+
+      <FlipDigit key={i} value={char} />
+
+    )
+
+  )}
+
+</div>
                   </div>
 
                   <div className="mt-2 text-zinc-400 text-sm">
