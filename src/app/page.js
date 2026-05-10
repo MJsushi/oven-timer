@@ -38,11 +38,7 @@ export default function Page() {
     try {
       if ("wakeLock" in navigator) {
         wakeLockRef.current =
-          await navigator.wakeLock.request(
-            "screen"
-          );
-
-        console.log("Wake Lock ON");
+          await navigator.wakeLock.request("screen");
       }
     } catch (err) {
       console.log(err);
@@ -57,7 +53,6 @@ export default function Page() {
           if (!m.running) return m;
 
           const next = m.seconds + 1;
-
           const targetSec =
             Number(m.targetMinute) * 60;
 
@@ -91,7 +86,7 @@ export default function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🎵 melody
+  // 🎵 alarm
   const playAlarm = () => {
     try {
       const audioContext =
@@ -103,8 +98,7 @@ export default function Page() {
       const playNote = (
         frequency,
         duration,
-        delay,
-        type = "triangle"
+        delay
       ) => {
         const oscillator =
           audioContext.createOscillator();
@@ -112,13 +106,11 @@ export default function Page() {
         const gainNode =
           audioContext.createGain();
 
-        oscillator.type = type;
-
+        oscillator.type = "triangle";
         oscillator.frequency.value =
           frequency;
 
         oscillator.connect(gainNode);
-
         gainNode.connect(
           audioContext.destination
         );
@@ -132,7 +124,7 @@ export default function Page() {
         );
 
         gainNode.gain.linearRampToValueAtTime(
-          0.15,
+          0.12,
           start + 0.02
         );
 
@@ -142,27 +134,19 @@ export default function Page() {
         );
 
         oscillator.start(start);
-
-        oscillator.stop(
-          start + duration
-        );
+        oscillator.stop(start + duration);
       };
 
-      // 🎵 melody
       playNote(1046, 0.18, 0.0);
       playNote(1318, 0.18, 0.2);
       playNote(1567, 0.18, 0.4);
       playNote(2093, 0.35, 0.6);
-
-      playNote(1567, 0.18, 1.1);
-      playNote(1760, 0.18, 1.3);
-      playNote(2093, 0.45, 1.5);
     } catch (err) {
       console.log(err);
     }
   };
 
-  // 🗣 AI ไทย
+  // 🗣 speech
   const speakThai = (text) => {
     try {
       speechSynthesis.cancel();
@@ -181,9 +165,8 @@ export default function Page() {
     }
   };
 
-  // ▶️ start / pause
+  // ▶️ start/pause
   const toggle = async (id) => {
-    // 🔓 unlock iPhone audio
     try {
       const unlock =
         new SpeechSynthesisUtterance("");
@@ -222,7 +205,7 @@ export default function Page() {
     );
   };
 
-  // ⌨️ เปลี่ยนเวลา
+  // ⌨️ update minute
   const updateMinute = (id, value) => {
     setMachines((prev) =>
       prev.map((m) =>
@@ -237,8 +220,8 @@ export default function Page() {
     );
   };
 
-  // 🕒 format
-  const formatTime = (sec) => {
+  // 🕒 split time
+  const splitTime = (sec) => {
     const h = String(
       Math.floor(sec / 3600)
     ).padStart(2, "0");
@@ -252,44 +235,44 @@ export default function Page() {
       "0"
     );
 
-    return `${h}:${m}:${s}`;
-  };
-
-  const splitTime = (sec) => {
-    const h = String(Math.floor(sec / 3600)).padStart(2, "0");
-    const m = String(Math.floor((sec % 3600) / 60)).padStart(2, "0");
-    const s = String(sec % 60).padStart(2, "0");
-
     return [...h, ":", ...m, ":", ...s];
   };
 
   return (
-    <main className="min-h-screen bg-[#0a0a0a] text-white px-3 py-4 md:p-6">
+    <main className="min-h-screen bg-[#050505] text-white px-2 py-2 md:px-4 md:py-4">
       {/* header */}
-      <div className="mb-4 md:mb-8 flex items-center justify-between">
+      <div className="mb-3 flex items-center justify-between">
         <div>
-          <div className="text-zinc-500 text-sm uppercase tracking-[0.2em]">
+          <div className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-zinc-500">
             Production Timer
           </div>
 
-          <h1 className="text-2xl md:text-4xl font-black mt-1">
+          <h1 className="text-lg md:text-3xl font-black">
             Oven Dashboard
           </h1>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-2 text-right shadow-lg">
-          <div className="text-xs text-zinc-500">
-            Machines
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1 shadow-lg">
+          <div className="text-[10px] text-zinc-500">
+            MACHINES
           </div>
 
-          <div className="text-xl font-bold">
+          <div className="text-lg md:text-2xl font-black text-center">
             {machines.length}
           </div>
         </div>
       </div>
 
       {/* cards */}
-      <div className="flex flex-col gap-3 md:grid md:grid-cols-3 md:gap-5">
+      <div
+        className="
+          grid
+          grid-cols-1
+          sm:grid-cols-2
+          xl:grid-cols-3
+          gap-2 md:gap-4
+        "
+      >
         {machines.map((m) => {
           const targetSec =
             Number(m.targetMinute) * 60;
@@ -300,159 +283,171 @@ export default function Page() {
           const warning =
             remain <= 60 && remain > 0;
 
+          const progress = Math.min(
+            Math.floor(
+              (m.seconds / targetSec) * 100
+            ),
+            100
+          );
+
           return (
             <div
               key={m.id}
               className={`
                 relative
                 overflow-hidden
-                rounded-[30px]
+                rounded-2xl
                 border
-                backdrop-blur-xl
                 shadow-2xl
-                transition-all
-                duration-300
-                min-h-[42vh]
+                p-3 md:p-4
                 flex
                 flex-col
                 justify-between
-                p-4 md:p-6
+                min-h-[280px]
+                md:min-h-[320px]
+                transition-all
+                duration-300
                 ${
                   m.finished
-                    ? "bg-gradient-to-br from-red-900 to-red-700 border-red-500 danger"
+                    ? "bg-gradient-to-br from-red-950 to-red-800 border-red-500"
                     : warning
-                    ? "bg-gradient-to-br from-yellow-800 to-orange-700 border-yellow-400"
-                    : "bg-gradient-to-br from-zinc-900 to-zinc-950 border-zinc-800"
+                    ? "bg-gradient-to-br from-yellow-900 to-orange-800 border-yellow-400"
+                    : "bg-gradient-to-br from-zinc-900 to-black border-zinc-800"
                 }
               `}
             >
               {/* glow */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 rounded-full bg-white/5 blur-3xl" />
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_45%)] pointer-events-none" />
 
-              <div className="relative z-10">
-                {/* top */}
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <div className="text-zinc-400 text-xs uppercase tracking-[0.2em] mb-1">
-                      Machine
-                    </div>
-
-                    <div className="text-xl md:text-2xl font-black">
-                      {m.name}
-                    </div>
+              {/* top */}
+              <div className="relative z-10 flex items-start justify-between mb-2">
+                <div>
+                  <div className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">
+                    MACHINE
                   </div>
 
-                  <div
-                    className={`
-                      px-3 py-1 rounded-full text-xs font-bold
-                      ${
-                        m.finished
-                          ? "bg-red-500/20 text-red-200"
-                          : m.running
-                          ? "bg-green-500/20 text-green-200 glow"
-                          : "bg-zinc-700/50 text-zinc-300"
-                      }
-                    `}
-                  >
-                    {m.finished
-                      ? "FINISHED"
-                      : m.running
-                      ? "RUNNING"
-                      : "IDLE"}
+                  <div className="text-lg md:text-2xl font-black">
+                    {m.name}
                   </div>
                 </div>
 
-                {/* time */}
-                <div className="text-center py-2 md:py-5">
-                  <div className="text-4xl md:text-6xl font-black tracking-wider font-mono">
-                    <div className="flex items-center justify-center gap-1 md:gap-2">
-                    {splitTime(m.seconds).map((char, i) =>
+                <div
+                  className={`
+                    px-2 py-1 rounded-full text-[10px] md:text-xs font-bold
+                    ${
+                      m.finished
+                        ? "bg-red-500/20 text-red-200"
+                        : m.running
+                        ? "bg-green-500/20 text-green-200"
+                        : "bg-zinc-700/60 text-zinc-300"
+                    }
+                  `}
+                >
+                  {m.finished
+                    ? "DONE"
+                    : m.running
+                    ? "RUN"
+                    : "IDLE"}
+                </div>
+              </div>
+
+              {/* timer */}
+              <div className="relative z-10 py-2">
+                <div className="flex items-center justify-center gap-[2px] md:gap-1">
+                  {splitTime(m.seconds).map(
+                    (char, i) =>
                       char === ":" ? (
-                        <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
+                        <div
+                          key={i}
+                          className="
+                            text-red-500
+                            text-2xl
+                            md:text-4xl
+                            font-black
+                            mb-1
+                          "
+                        >
                           :
                         </div>
                       ) : (
-                        <FlipDigit key={i} value={char} />
+                        <FlipDigit
+                          key={i}
+                          value={char}
+                        />
                       )
-                    )}
-                  </div>
-                  </div>
-                  <div className="mt-2 text-zinc-400 text-sm">
-                    Target {m.targetMinute} นาที
-                  </div>
+                  )}
                 </div>
 
-                {/* progress */}
-                <div className="mb-5">
-                  <div className="flex justify-between text-xs text-zinc-400 mb-2">
-                    <span>Progress</span>
+                <div className="mt-2 text-center text-[11px] md:text-sm text-zinc-400">
+                  Target{" "}
+                  <span className="text-white font-bold">
+                    {m.targetMinute}
+                  </span>{" "}
+                  นาที
+                </div>
+              </div>
 
-                    <span>
-                      {Math.min(
-                        Math.floor(
-                          (m.seconds /
-                            targetSec) *
-                            100
-                        ),
-                        100
-                      )}
-                      %
-                    </span>
-                  </div>
+              {/* progress */}
+              <div className="relative z-10 mb-3">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] md:text-xs text-zinc-500 uppercase">
+                    Progress
+                  </span>
 
-                  <div className="w-full h-3 bg-black/40 rounded-full overflow-hidden">
-                    <div
-                      className={`
-                        h-full rounded-full transition-all duration-500
-                        ${
-                          m.finished
-                            ? "bg-red-400"
-                            : warning
-                            ? "bg-yellow-300"
-                            : "bg-green-400"
-                        }
-                      `}
-                      style={{
-                        width: `${Math.min(
-                          (m.seconds /
-                            targetSec) *
-                            100,
-                          100
-                        )}%`,
-                      }}
-                    />
-                  </div>
+                  <span className="text-lg md:text-2xl font-black text-white tabular-nums">
+                    {progress}%
+                  </span>
                 </div>
 
-                {/* input */}
-                <div className="mb-5">
-                  <div className="text-sm text-zinc-400 mb-2">
-                    ตั้งเวลา (นาที)
-                  </div>
-
-                  <input
-                    type="number"
-                    value={m.targetMinute}
-                    onChange={(e) =>
-                      updateMinute(
-                        m.id,
-                        e.target.value
-                      )
-                    }
-                    className="
-                      w-full
-                      bg-black/40
-                      border
-                      border-zinc-700
-                      rounded-2xl
-                      px-4
-                      py-3
-                      text-lg
-                      outline-none
-                      focus:border-green-400
-                    "
+                <div className="w-full h-3 md:h-4 rounded-full overflow-hidden bg-black/50 border border-zinc-800">
+                  <div
+                    className={`
+                      h-full
+                      transition-all
+                      duration-500
+                      ${
+                        m.finished
+                          ? "bg-red-400"
+                          : warning
+                          ? "bg-yellow-300"
+                          : "bg-green-400"
+                      }
+                    `}
+                    style={{
+                      width: `${progress}%`,
+                    }}
                   />
                 </div>
+              </div>
+
+              {/* input */}
+              <div className="relative z-10 mb-3">
+                <div className="text-[11px] md:text-sm text-zinc-400 mb-1">
+                  ตั้งเวลา (นาที)
+                </div>
+
+                <input
+                  type="number"
+                  value={m.targetMinute}
+                  onChange={(e) =>
+                    updateMinute(
+                      m.id,
+                      e.target.value
+                    )
+                  }
+                  className="
+                    w-full
+                    bg-black/40
+                    border border-zinc-700
+                    rounded-xl
+                    px-3
+                    py-2
+                    md:py-3
+                    text-base md:text-lg
+                    outline-none
+                    focus:border-green-400
+                  "
+                />
               </div>
 
               {/* buttons */}
@@ -464,13 +459,13 @@ export default function Page() {
                   }
                   className={`
                     flex-1
-                    rounded-2xl
-                    py-3 md:py-4
-                    text-base md:text-lg
+                    rounded-xl
+                    py-2.5 md:py-3
+                    text-sm md:text-lg
                     font-black
-                    shadow-lg
                     transition-all
                     active:scale-95
+                    shadow-lg
                     ${
                       m.running
                         ? "bg-orange-500"
@@ -491,12 +486,12 @@ export default function Page() {
                   className="
                     flex-1
                     bg-zinc-700
-                    rounded-2xl
-                    py-3 md:py-4
-                    text-base md:text-lg
+                    rounded-xl
+                    py-2.5 md:py-3
+                    text-sm md:text-lg
                     font-black
-                    shadow-lg
                     active:scale-95
+                    shadow-lg
                   "
                 >
                   Reset

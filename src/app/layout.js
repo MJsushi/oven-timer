@@ -1,7 +1,7 @@
 import {
   Geist,
   Geist_Mono,
-  DotGothic16,
+  Share_Tech_Mono,
 } from "next/font/google";
 
 import "./globals.css";
@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const dotFont = DotGothic16({
+const dotFont = Share_Tech_Mono({
   weight: "400",
   subsets: ["latin"],
   variable: "--font-dot",
