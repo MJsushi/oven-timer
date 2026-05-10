@@ -18,7 +18,7 @@ export default function FlipDigit({
       const timeout = setTimeout(() => {
         setDisplay(value);
         setAnimate(false);
-      }, 90);
+      }, 120);
 
       return () =>
         clearTimeout(timeout);
@@ -29,44 +29,42 @@ export default function FlipDigit({
     <div
       className="
         relative
-        w-10 h-14
-        md:w-14 md:h-20
         overflow-hidden
-        rounded-xl
-        border border-red-900/30
+        rounded-lg
         bg-black
+        border border-red-950
         flex items-center justify-center
+        shadow-inner
+        w-9 h-12
+        md:w-14 md:h-18
       "
     >
+      {/* background glow */}
+      <div className="absolute inset-0 pointer-events-none bg-red-500/5" />
+
       {/* scanline */}
       <div
         className="
-          absolute inset-0
-          pointer-events-none
-          opacity-30
-          bg-[linear-gradient(to_bottom,transparent_50%,rgba(255,255,255,0.03)_51%)]
-          bg-[size:100%_4px]
-        "
-      />
-
-      {/* digit */}
-      <div
-        className={`
           absolute
           inset-0
-          flex
-          items-center
-          justify-center
-          text-3xl
-          md:text-5xl
+          opacity-20
+          pointer-events-none
+        "
+        style={{
+          backgroundImage:
+            "linear-gradient(to bottom, transparent 50%, rgba(255,255,255,0.05) 51%)",
+          backgroundSize: "100% 4px",
+        }}
+      />
+
+      <div
+        className={`
+          led-text
           font-black
-          leading-none
-          timer-digit
-          font-['var(--font-dot)']
-          led-red
+          text-2xl
+          md:text-5xl
           transition-all
           duration-100
-          ease-linear
           ${
             animate
               ? "translate-y-2 opacity-0"

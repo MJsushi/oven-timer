@@ -1,40 +1,20 @@
-import {
-  Geist,
-  Geist_Mono,
-  Share_Tech_Mono,
-} from "next/font/google";
-
+import { Orbitron } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const orbitron = Orbitron({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
-
-const dotFont = Share_Tech_Mono({
-  weight: "400",
-  subsets: ["latin"],
-  variable: "--font-dot",
+  weight: ["400", "500", "700", "900"],
+  variable: "--font-orbitron",
 });
 
 export const metadata = {
   title: "Oven Timer",
-
   description: "Production Timer",
-
   manifest: "/manifest.json",
 
   appleWebApp: {
     capable: true,
-
-    statusBarStyle:
-      "black-translucent",
-
+    statusBarStyle: "black-translucent",
     title: "Oven Timer",
   },
 
@@ -49,17 +29,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`
-        ${geistSans.variable}
-        ${geistMono.variable}
-        ${dotFont.variable}
-        h-full
-        antialiased
-      `}
+      className={orbitron.variable}
     >
-      <body className="min-h-full flex flex-col">
-        {children}
-      </body>
+      <body>{children}</body>
     </html>
   );
 }

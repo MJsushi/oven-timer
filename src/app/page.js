@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import FlipDigit from "./components/FlipDigit";
 
 const defaultMachines = [
   {
@@ -32,20 +31,23 @@ export default function Page() {
   );
 
   const wakeLockRef = useRef(null);
+  const audioRef = useRef(null);
 
-  // 🔆 กันหน้าจอดับ
+  // 🔆 wake lock
   const enableWakeLock = async () => {
     try {
       if ("wakeLock" in navigator) {
         wakeLockRef.current =
-          await navigator.wakeLock.request("screen");
+          await navigator.wakeLock.request(
+            "screen"
+          );
       }
     } catch (err) {
       console.log(err);
     }
   };
 
-  // ⏱ timer loop
+  // ⏱ timer
   useEffect(() => {
     const interval = setInterval(() => {
       setMachines((prev) =>
@@ -53,10 +55,10 @@ export default function Page() {
           if (!m.running) return m;
 
           const next = m.seconds + 1;
+
           const targetSec =
             Number(m.targetMinute) * 60;
 
-          // 🔔 ครบเวลา
           if (
             next >= targetSec &&
             !m.finished
@@ -86,14 +88,22 @@ export default function Page() {
     return () => clearInterval(interval);
   }, []);
 
-  // 🎵 alarm
+  // 🔊 alarm
   const playAlarm = () => {
     try {
+      const AudioContextClass =
+        window.AudioContext ||
+        window.webkitAudioContext;
+
+      if (!AudioContextClass) return;
+
+      if (!audioRef.current) {
+        audioRef.current =
+          new AudioContextClass();
+      }
+
       const audioContext =
-        new (
-          window.AudioContext ||
-          window.webkitAudioContext
-        )();
+        audioRef.current;
 
       const playNote = (
         frequency,
@@ -106,11 +116,13 @@ export default function Page() {
         const gainNode =
           audioContext.createGain();
 
-        oscillator.type = "triangle";
+        oscillator.type = "square";
+
         oscillator.frequency.value =
           frequency;
 
         oscillator.connect(gainNode);
+
         gainNode.connect(
           audioContext.destination
         );
@@ -119,13 +131,13 @@ export default function Page() {
           audioContext.currentTime + delay;
 
         gainNode.gain.setValueAtTime(
-          0,
+          0.0001,
           start
         );
 
-        gainNode.gain.linearRampToValueAtTime(
-          0.12,
-          start + 0.02
+        gainNode.gain.exponentialRampToValueAtTime(
+          0.18,
+          start + 0.01
         );
 
         gainNode.gain.exponentialRampToValueAtTime(
@@ -134,21 +146,25 @@ export default function Page() {
         );
 
         oscillator.start(start);
-        oscillator.stop(start + duration);
+
+        oscillator.stop(
+          start + duration
+        );
       };
 
-      playNote(1046, 0.18, 0.0);
-      playNote(1318, 0.18, 0.2);
-      playNote(1567, 0.18, 0.4);
-      playNote(2093, 0.35, 0.6);
+      playNote(1200, 0.15, 0);
+      playNote(1600, 0.15, 0.2);
+      playNote(2200, 0.35, 0.4);
     } catch (err) {
       console.log(err);
     }
   };
 
-  // 🗣 speech
+  // 🗣 speak
   const speakThai = (text) => {
     try {
+      if (!window.speechSynthesis) return;
+
       speechSynthesis.cancel();
 
       const utterance =
@@ -156,8 +172,6 @@ export default function Page() {
 
       utterance.lang = "th-TH";
       utterance.rate = 0.9;
-      utterance.pitch = 1;
-      utterance.volume = 1;
 
       speechSynthesis.speak(utterance);
     } catch (err) {
@@ -165,13 +179,16 @@ export default function Page() {
     }
   };
 
-  // ▶️ start/pause
+  // ▶️ toggle
   const toggle = async (id) => {
     try {
-      const unlock =
-        new SpeechSynthesisUtterance("");
-
-      speechSynthesis.speak(unlock);
+      if (
+        audioRef.current &&
+        audioRef.current.state ===
+          "suspended"
+      ) {
+        await audioRef.current.resume();
+      }
     } catch (e) {}
 
     await enableWakeLock();
@@ -206,7 +223,10 @@ export default function Page() {
   };
 
   // ⌨️ update minute
-  const updateMinute = (id, value) => {
+  const updateMinute = (
+    id,
+    value
+  ) => {
     setMachines((prev) =>
       prev.map((m) =>
         m.id === id
@@ -239,43 +259,40 @@ export default function Page() {
   };
 
   return (
-    <main className="min-h-screen bg-[#050505] text-white px-2 py-2 md:px-4 md:py-4">
+    <main className="min-h-screen bg-black text-white p-2 md:p-4">
       {/* header */}
       <div className="mb-3 flex items-center justify-between">
         <div>
-          <div className="text-[10px] md:text-xs uppercase tracking-[0.25em] text-zinc-500">
+          <div className="text-[10px] md:text-xs text-zinc-500 uppercase tracking-[0.25em]">
             Production Timer
           </div>
 
-          <h1 className="text-lg md:text-3xl font-black">
+          <h1 className="text-xl md:text-3xl font-black">
             Oven Dashboard
           </h1>
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-1 shadow-lg">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2">
           <div className="text-[10px] text-zinc-500">
-            MACHINES
+            Machines
           </div>
 
-          <div className="text-lg md:text-2xl font-black text-center">
+          <div className="text-lg font-black">
             {machines.length}
           </div>
         </div>
       </div>
 
       {/* cards */}
-      <div
-        className="
-          grid
-          grid-cols-1
-          sm:grid-cols-2
-          xl:grid-cols-3
-          gap-2 md:gap-4
-        "
-      >
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
         {machines.map((m) => {
           const targetSec =
             Number(m.targetMinute) * 60;
+
+          const progress = Math.min(
+            (m.seconds / targetSec) * 100,
+            100
+          );
 
           const remain =
             targetSec - m.seconds;
@@ -283,47 +300,31 @@ export default function Page() {
           const warning =
             remain <= 60 && remain > 0;
 
-          const progress = Math.min(
-            Math.floor(
-              (m.seconds / targetSec) * 100
-            ),
-            100
-          );
-
           return (
             <div
               key={m.id}
               className={`
-                relative
-                overflow-hidden
-                rounded-2xl
+                rounded-3xl
                 border
-                shadow-2xl
                 p-3 md:p-4
                 flex
                 flex-col
-                justify-between
-                min-h-[280px]
-                md:min-h-[320px]
-                transition-all
-                duration-300
+                gap-3
+                shadow-2xl
                 ${
                   m.finished
-                    ? "bg-gradient-to-br from-red-950 to-red-800 border-red-500"
+                    ? "bg-red-950 border-red-600"
                     : warning
-                    ? "bg-gradient-to-br from-yellow-900 to-orange-800 border-yellow-400"
-                    : "bg-gradient-to-br from-zinc-900 to-black border-zinc-800"
+                    ? "bg-yellow-950 border-yellow-500"
+                    : "bg-zinc-950 border-zinc-800"
                 }
               `}
             >
-              {/* glow */}
-              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_45%)] pointer-events-none" />
-
               {/* top */}
-              <div className="relative z-10 flex items-start justify-between mb-2">
+              <div className="flex items-center justify-between">
                 <div>
                   <div className="text-[10px] md:text-xs uppercase tracking-[0.2em] text-zinc-500">
-                    MACHINE
+                    Machine
                   </div>
 
                   <div className="text-lg md:text-2xl font-black">
@@ -333,52 +334,88 @@ export default function Page() {
 
                 <div
                   className={`
-                    px-2 py-1 rounded-full text-[10px] md:text-xs font-bold
+                    px-3 py-1 rounded-full text-xs font-black
                     ${
                       m.finished
-                        ? "bg-red-500/20 text-red-200"
+                        ? "bg-red-500 text-white"
                         : m.running
-                        ? "bg-green-500/20 text-green-200"
-                        : "bg-zinc-700/60 text-zinc-300"
+                        ? "bg-green-500 text-black"
+                        : "bg-zinc-700 text-zinc-200"
                     }
                   `}
                 >
                   {m.finished
-                    ? "DONE"
+                    ? "FINISHED"
                     : m.running
-                    ? "RUN"
+                    ? "RUNNING"
                     : "IDLE"}
                 </div>
               </div>
 
-              {/* timer */}
-              <div className="relative z-10 py-2">
-                <div className="flex items-center justify-center gap-[2px] md:gap-1">
+              {/* TIMER */}
+              <div className="bg-black rounded-3xl border border-zinc-800 px-2 py-4 md:py-5">
+                <div className="flex items-center justify-center gap-1">
                   {splitTime(m.seconds).map(
                     (char, i) =>
                       char === ":" ? (
                         <div
                           key={i}
                           className="
-                            text-red-500
-                            text-2xl
-                            md:text-4xl
+                            text-[42px]
+                            md:text-[72px]
                             font-black
+                            leading-none
+                            text-red-500
                             mb-1
                           "
                         >
                           :
                         </div>
                       ) : (
-                        <FlipDigit
+                        <div
                           key={i}
-                          value={char}
-                        />
+                          className="
+                            w-[44px]
+                            h-[62px]
+                            md:w-[72px]
+                            md:h-[100px]
+                            rounded-xl
+                            border
+                            border-zinc-800
+                            bg-[#050505]
+                            flex
+                            items-center
+                            justify-center
+                            overflow-hidden
+                          "
+                        >
+                          <div
+                            className="
+                              text-[40px]
+                              md:text-[72px]
+                              font-black
+                              leading-none
+                              text-red-500
+                              tracking-tight
+                              select-none
+                            "
+                            style={{
+                              fontFamily:
+                                "'Courier New', monospace",
+                              textShadow:
+                                "0 0 8px rgba(255,0,0,0.9)",
+                              transform:
+                                "translateY(-2px)",
+                            }}
+                          >
+                            {char}
+                          </div>
+                        </div>
                       )
                   )}
                 </div>
 
-                <div className="mt-2 text-center text-[11px] md:text-sm text-zinc-400">
+                <div className="text-center mt-3 text-zinc-500 text-sm md:text-base">
                   Target{" "}
                   <span className="text-white font-bold">
                     {m.targetMinute}
@@ -388,29 +425,27 @@ export default function Page() {
               </div>
 
               {/* progress */}
-              <div className="relative z-10 mb-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-[10px] md:text-xs text-zinc-500 uppercase">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <div className="text-sm text-zinc-400">
                     Progress
-                  </span>
+                  </div>
 
-                  <span className="text-lg md:text-2xl font-black text-white tabular-nums">
-                    {progress}%
-                  </span>
+                  <div className="text-2xl md:text-3xl font-black text-white">
+                    {Math.floor(progress)}%
+                  </div>
                 </div>
 
-                <div className="w-full h-3 md:h-4 rounded-full overflow-hidden bg-black/50 border border-zinc-800">
+                <div className="h-4 bg-black rounded-full overflow-hidden border border-zinc-800">
                   <div
                     className={`
-                      h-full
-                      transition-all
-                      duration-500
+                      h-full transition-all duration-500
                       ${
                         m.finished
-                          ? "bg-red-400"
+                          ? "bg-red-500"
                           : warning
-                          ? "bg-yellow-300"
-                          : "bg-green-400"
+                          ? "bg-yellow-400"
+                          : "bg-green-500"
                       }
                     `}
                     style={{
@@ -421,8 +456,8 @@ export default function Page() {
               </div>
 
               {/* input */}
-              <div className="relative z-10 mb-3">
-                <div className="text-[11px] md:text-sm text-zinc-400 mb-1">
+              <div>
+                <div className="text-sm text-zinc-400 mb-2">
                   ตั้งเวลา (นาที)
                 </div>
 
@@ -437,21 +472,21 @@ export default function Page() {
                   }
                   className="
                     w-full
-                    bg-black/40
-                    border border-zinc-700
-                    rounded-xl
-                    px-3
-                    py-2
-                    md:py-3
-                    text-base md:text-lg
+                    rounded-2xl
+                    bg-black
+                    border
+                    border-zinc-700
+                    px-4
+                    py-3
+                    text-lg
                     outline-none
-                    focus:border-green-400
+                    text-white
                   "
                 />
               </div>
 
               {/* buttons */}
-              <div className="relative z-10 flex gap-2">
+              <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() =>
@@ -459,17 +494,16 @@ export default function Page() {
                   }
                   className={`
                     flex-1
-                    rounded-xl
-                    py-2.5 md:py-3
-                    text-sm md:text-lg
+                    py-3
+                    rounded-2xl
                     font-black
-                    transition-all
+                    text-base
                     active:scale-95
-                    shadow-lg
+                    transition-all
                     ${
                       m.running
-                        ? "bg-orange-500"
-                        : "bg-green-500"
+                        ? "bg-orange-500 text-black"
+                        : "bg-green-500 text-black"
                     }
                   `}
                 >
@@ -485,13 +519,12 @@ export default function Page() {
                   }
                   className="
                     flex-1
-                    bg-zinc-700
-                    rounded-xl
-                    py-2.5 md:py-3
-                    text-sm md:text-lg
+                    py-3
+                    rounded-2xl
                     font-black
+                    text-base
+                    bg-zinc-700
                     active:scale-95
-                    shadow-lg
                   "
                 >
                   Reset

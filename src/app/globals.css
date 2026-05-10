@@ -4,13 +4,11 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #0a0a0a;
-  font-family: Arial, Helvetica, sans-serif;
+  background: #050505;
   color: white;
-}
-
-html {
-  scroll-behavior: smooth;
+  overflow-x: hidden;
+  font-family: var(--font-orbitron),
+    sans-serif;
 }
 
 * {
@@ -33,76 +31,50 @@ input[type="number"] {
   appearance: textfield;
 }
 
-::selection {
-  background: #22c55e;
-  color: white;
-}
-
-/* scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #111;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #3f3f46;
-  border-radius: 999px;
-}
-
-/* running glow */
-@keyframes pulseGlow {
-  0% {
-    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
-  }
-
-  50% {
-    box-shadow:
-      0 0 12px rgba(34, 197, 94, 0.2);
-  }
-
-  100% {
-    box-shadow: 0 0 0 rgba(34, 197, 94, 0);
-  }
-}
-
-.glow {
-  animation: pulseGlow 2s infinite;
-}
-
-/* finished */
-@keyframes dangerPulse {
-  0% {
-    transform: scale(1);
-  }
-
-  50% {
-    transform: scale(1.005);
-  }
-
-  100% {
-    transform: scale(1);
-  }
-}
-
-.danger {
-  animation: dangerPulse 1s infinite;
-}
-
-/* LED */
-.led-red {
+/* LED display */
+.led-text {
   color: #ff453a;
 
   text-shadow:
-    0 0 4px rgba(255, 0, 0, 0.9),
-    0 0 10px rgba(255, 0, 0, 0.45);
+    0 0 4px rgba(255, 69, 58, 0.9),
+    0 0 8px rgba(255, 69, 58, 0.8),
+    0 0 16px rgba(255, 69, 58, 0.7);
 }
 
-/* stable numbers */
-.timer-digit {
-  font-variant-numeric: tabular-nums;
-  font-feature-settings: "tnum";
+/* subtle pulse */
+@keyframes ledPulse {
+  0% {
+    opacity: 0.94;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.94;
+  }
+}
+
+.led-pulse {
+  animation: ledPulse 2s infinite;
+}
+
+/* progress shine */
+@keyframes progressGlow {
+  0% {
+    opacity: 0.5;
+  }
+
+  50% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0.5;
+  }
+}
+
+.progress-glow {
+  animation: progressGlow 1.5s infinite;
 }
