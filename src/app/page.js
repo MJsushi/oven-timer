@@ -367,16 +367,25 @@ export default function Page() {
                   <div className="text-4xl md:text-6xl font-black tracking-wider font-mono">
                     <div className="flex items-center justify-center gap-1 md:gap-2">
 
-                      {splitTime(m.seconds).map((char, i) =>
-                        char === ":" ? (
-                          <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
-                            :
-                          </div>
-                        ) : (
-                          <FlipDigit key={i} value={char} />
-                        )
-                      )}
-                    </div>
+  {splitTime(m.seconds).map((char, i) =>
+
+    char === ":" ? (
+
+      <div key={i} className="px-1 text-red-500 text-3xl md:text-5xl font-bold">
+
+        :
+
+      </div>
+
+    ) : (
+
+      <FlipDigit key={i} value={char} />
+
+    )
+
+  )}
+
+</div>
                   </div>
 
                   <div className="mt-2 text-zinc-400 text-sm">
@@ -386,29 +395,19 @@ export default function Page() {
 
                 {/* progress */}
                 <div className="mb-5">
-                  <div className="flex justify-between items-end mb-2">
-                    <span className="text-xs text-zinc-500 uppercase tracking-wider">
-                      Progress
-                    </span>
-                    <span
-                      className="
-                        text-2xl md:text-4xl
-                        font-black
-                        leading-none
-                        led-red
-                        led-glow
-                        tabular-nums
-                      "
-                    >
+                  <div className="flex justify-between text-xs text-zinc-400 mb-2">
+                    <span>Progress</span>
+
+                    <span>
                       {Math.min(
                         Math.floor(
-                          (m.seconds / targetSec) * 100
+                          (m.seconds /
+                            targetSec) *
+                            100
                         ),
                         100
                       )}
-                      <span className="text-lg md:text-2xl ml-1">
-                        %
-                      </span>
+                      %
                     </span>
                   </div>
 
